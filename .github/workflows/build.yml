@@ -11,17 +11,18 @@ jobs:
       - name: Clone đúng nhánh KMI
         run: |
           git clone --branch android14-6.1 --depth=1 https://android.googlesource.com/kernel/common kernel-src
-          cd kernel-src
-          echo "Đã clone nhánh: android14-6.1"
+          ls -la
 
       - name: Thêm KernelSU-Next
         run: |
           cd kernel-src
+          ls -la
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/main/kernel/setup.sh" | bash -s main
 
       - name: Thêm SUSFS
         run: |
           cd kernel-src/KernelSU-Next
+          ls -la
           curl -LSs https://raw.githubusercontent.com/sidex15/susfs/main/kernel/setup.sh | bash
 
       - name: Cấu hình & Biên dịch
