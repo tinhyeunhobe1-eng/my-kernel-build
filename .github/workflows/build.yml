@@ -1,29 +1,36 @@
-name: Build Kernel
+name: Build-KernelSU-SUSFS
 on:
   workflow_dispatch:
-    inputs:
-      kmi:
-        description: 'KMI Version'
-        required: true
-        default: 'android14-6.1'
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Clone and build
+      - name: Clone đúng nhánh KMI
         run: |
-          git clone --depth=1 https://github.com/WildKernels/GKI_KernelSU_SUSFS.git build
-          cd build
-          chmod +x build.sh
-          ./build.sh ${{ github.event.inputs.kmi }}
+          git clone --branch android14-6.1 --depth=1 https://android.googlesource.com/kernel/common kernel
+          cd kernel
+          echo "Đã clone nhánh: android14-6.1"
 
-      - name: Upload artifacts
+      - name: Thêm KernelSU-Next
+        run: |
+          cd kernel
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/main/kernel/setup.sh" | bash -s main
+
+      - name: Thêm SUSFS
+        run: |
+          cd KernelSU-Next
+          curl -LSs https://raw.githubusercontent.com/sidex15/susfs/main/kernel/setup.sh | bash
+
+      - name: Cấu hình & Biên dịch
+        run: |
+          cd kernel
+          make ARCH=arm64 CC=aarch64-linux-gnu-gcc CROSS_COMPILE=aarch64-linux-gnu- defconfig GKI_DEFCONFIG=gki_defconfig
+          make ARCH=arm64 CC=aarch64-linux-gnu-gcc CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
+
+      - name: Upload kết quả
         uses: actions/upload-artifact@v4
         with:
-          name: Kernel-Output
-          path: build/output/
-          retention-days: 30
+          name: Image-android14-6.1
+          path: kernel/arch/arm64/boot/Image
