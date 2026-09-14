@@ -1,0 +1,29 @@
+name: Build Kernel
+on:
+  workflow_dispatch:
+    inputs:
+      kmi:
+        description: 'KMI Version'
+        required: true
+        default: 'android14-6.1'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone and build
+        run: |
+          git clone --depth=1 https://github.com/WildKernels/GKI_KernelSU_SUSFS.git build
+          cd build
+          chmod +x build.sh
+          ./build.sh ${{ github.event.inputs.kmi }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kernel-Output
+          path: build/output/
+          retention-days: 30
