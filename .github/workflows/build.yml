@@ -1,6 +1,7 @@
 name: Build-KernelSU-SUSFS
 on:
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -9,23 +10,23 @@ jobs:
 
       - name: Clone đúng nhánh KMI
         run: |
-          git clone --branch android14-6.1 --depth=1 https://android.googlesource.com/kernel/common kernel
-          cd kernel
+          git clone --branch android14-6.1 --depth=1 https://android.googlesource.com/kernel/common kernel-src
+          cd kernel-src
           echo "Đã clone nhánh: android14-6.1"
 
       - name: Thêm KernelSU-Next
         run: |
-          cd kernel
+          cd kernel-src
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/main/kernel/setup.sh" | bash -s main
 
       - name: Thêm SUSFS
         run: |
-          cd KernelSU-Next
+          cd kernel-src/KernelSU-Next
           curl -LSs https://raw.githubusercontent.com/sidex15/susfs/main/kernel/setup.sh | bash
 
       - name: Cấu hình & Biên dịch
         run: |
-          cd kernel
+          cd kernel-src
           make ARCH=arm64 CC=aarch64-linux-gnu-gcc CROSS_COMPILE=aarch64-linux-gnu- defconfig GKI_DEFCONFIG=gki_defconfig
           make ARCH=arm64 CC=aarch64-linux-gnu-gcc CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
 
@@ -33,4 +34,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Image-android14-6.1
-          path: kernel/arch/arm64/boot/Image
+          path: kernel-src/arch/arm64/boot/Image
