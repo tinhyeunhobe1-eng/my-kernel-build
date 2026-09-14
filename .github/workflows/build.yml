@@ -8,35 +8,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Clone nguồn
+      - name: Clone nguồn & thêm KSU-Next
         run: |
           git clone --branch android14-6.1 --depth=1 https://android.googlesource.com/kernel/common kernel-src
           cd kernel-src
-          ls -la
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/main/kernel/setup.sh" | bash -s main
+          
+          # Tải SUSFS thủ công — đơn giản nhất
+          cd KernelSU-Next
+          git clone --depth=1 https://github.com/sidex15/susfs.git susfs
+          echo "SUSFS đã tải xong!"
 
-      - name: Tải và tích hợp KernelSU-Next
-        run: |
-          cd kernel-src
-          curl -Lso ksu-setup.sh https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/main/kernel/setup.sh
-          chmod +x ksu-setup.sh
-          bash ./ksu-setup.sh main
-          ls -la
-
-      - name: Tải và tích hợp SUSFS
-        run: |
-          cd kernel-src/KernelSU-Next
-          curl -Lso susfs-setup.sh https://raw.githubusercontent.com/sidex15/susfs/main/kernel/setup.sh
-          chmod +x susfs-setup.sh
-          bash ./susfs-setup.sh
-
-      - name: Cấu hình
+      - name: Cấu hình & Biên dịch
         run: |
           cd kernel-src
           make ARCH=arm64 CC=aarch64-linux-gnu-gcc CROSS_COMPILE=aarch64-linux-gnu- defconfig GKI_DEFCONFIG=gki_defconfig
-
-      - name: Biên dịch
-        run: |
-          cd kernel-src
           make ARCH=arm64 CC=aarch64-linux-gnu-gcc CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc)
 
       - name: Upload kết quả
